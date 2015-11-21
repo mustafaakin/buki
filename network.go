@@ -45,7 +45,6 @@ type Bridge struct {
 
 func GetNetworks() []Network{
 	conn := BuildConnection()
-	// Do not forget to close connection
 	defer conn.CloseConnection()
 
 	nets, _ := conn.ListAllNetworks(0)
@@ -61,4 +60,35 @@ func GetNetworks() []Network{
 	}
 
 	return Networks
+}
+
+// Creates a bridge with the same name
+func CreateNATNetwork(name, address, netmask string) (string, error) {
+	conn := BuildConnection()
+
+	net, err := conn.NetworkDefineXML(
+		`<network>
+			<name>` + name + `</name>
+			<bridge name="` + name + `"/>
+			<forward/>
+			<ip address="` + address + `" netmask="` + netmask +`"></ip>
+	    </network>`)
+
+	defer func(){
+		conn.CloseConnection()
+		net.Free()
+	}()
+
+	if err == nil {
+		err = net.Create()
+		net.SetAutostart(true)
+		uuid, _ := net.GetUUIDString()
+		return uuid, nil
+	} else {
+		return "", err
+	}
+}
+
+func CreateBridgedNetwork(){
+	// TODO: Add this
 }

@@ -15,4 +15,9 @@ func main() {
 		return
 	}
 	fmt.Println(string(b))
+
+	uuid, err := buki.CreateNATNetwork("mustafa", "172.16.0.1","255.255.248.0")
+	println(uuid)
+	println(err)
+
 }
