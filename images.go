@@ -9,14 +9,13 @@ import (
 
 )
 
-var basePath = "/home/mustafa/buki"
+var basePath = "/home/mustafa/buki/images"
 
 func InitStorage(){
 
 }
 
 func GetAvailableImages() []string{
-	basePath := path.Join(basePath, "images")
 	files, _ := ioutil.ReadDir(basePath)
 
 	s := make([]string, 0, 5);
@@ -28,7 +27,7 @@ func GetAvailableImages() []string{
 }
 
 func GetImagePath(name string) string{
-	return path.Join(basePath, "images", string(name + ".img"))
+	return path.Join(basePath, string(name + ".img"))
 }
 
 func DownloadImage(path, name string) (error){

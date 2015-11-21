@@ -3,11 +3,10 @@ package main
 import (
 	"github.com/mustafaakin/buki"
 	"fmt"
-
 )
 
 func main() {
-	/*
+/*
 	nets := buki.GetNetworks()
 
 	b, err := json.Marshal(nets)
@@ -25,5 +24,7 @@ func main() {
 
 //	err = buki.DownloadImage("https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img", "ubuntu_14-04")
 
-	fmt.Println(buki.GetAvailableImages())
+//	fmt.Println(buki.GetAvailableImages())
+
+	
 }

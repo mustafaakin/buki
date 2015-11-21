@@ -1,6 +1,0 @@
-package buki
-
-func CreateUbuntu(){
-
-}
-

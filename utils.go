@@ -9,3 +9,7 @@ func BuildConnection() libvirt.VirConnection {
 	}
 	return conn
 }
+
+func GenerateMAC() string {
+
+}
