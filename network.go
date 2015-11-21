@@ -27,6 +27,7 @@ type Network struct {
 	Forward Forward        `xml:"forward" json:"forward"`
 	Bridge	Bridge         `xml:"bridge" json:"bridge"`
 	IPs		[]IPAddress    `xml:"ip" json:"ip"`
+	Active	bool           `json:"active"`
 }
 
 type Forward struct {
@@ -55,6 +56,8 @@ func GetNetworks() []Network{
 		xmlResp, _ := net.GetXMLDesc(0)
 		// ignoring error right now
 		xml.Unmarshal([]byte(xmlResp), &Networks[idx])
+		isActive, _ := net.IsActive()
+		Networks[idx].Active = isActive
 	}
 
 	return Networks
