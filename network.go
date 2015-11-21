@@ -37,10 +37,16 @@ type Forward struct {
 type IPAddress struct {
 	Address string         `xml:"address,attr" json:"address"`
 	Netmask string         `xml:"netmask,attr" json:"netmask"`
+	IPRange DHCPRange		`xml:"dhcp>range" json:"range"`
 }
 
 type Bridge struct {
 	Name  string         `xml:"name,attr" json:"name"`
+}
+
+type DHCPRange struct {
+	Start  string   `xml:"start,attr" json:"start"`
+	End    string   `xml:"end,attr" json:"end"`
 }
 
 func GetNetworks() []Network{
@@ -63,16 +69,23 @@ func GetNetworks() []Network{
 }
 
 // Creates a bridge with the same name
-func CreateNATNetwork(name, address, netmask string) (string, error) {
+func CreateNATNetwork(name, address, netmask, start, end string) (*Network, error) {
+	// TODO: Add error cheks
 	conn := BuildConnection()
 
-	net, err := conn.NetworkDefineXML(
+	xmlString :=
 		`<network>
 			<name>` + name + `</name>
 			<bridge name="` + name + `"/>
 			<forward/>
-			<ip address="` + address + `" netmask="` + netmask +`"></ip>
-	    </network>`)
+			<ip address="` + address + `" netmask="` + netmask +`">
+			    <dhcp>
+      				<range start='` + start + `' end='` + end + `'/>
+    			</dhcp>
+			</ip>
+	    </network>`
+
+	net, err := conn.NetworkDefineXML(xmlString)
 
 	defer func(){
 		conn.CloseConnection()
@@ -82,10 +95,14 @@ func CreateNATNetwork(name, address, netmask string) (string, error) {
 	if err == nil {
 		err = net.Create()
 		net.SetAutostart(true)
-		uuid, _ := net.GetUUIDString()
-		return uuid, nil
+
+		// Construct a new Network object to return it
+		myNet := &Network{}
+		respXml, _ := net.GetXMLDesc(0);
+		xml.Unmarshal([]byte(respXml), myNet)
+		return myNet, nil
 	} else {
-		return "", err
+		return nil, err
 	}
 }
 
