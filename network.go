@@ -68,9 +68,9 @@ func GetNetworks() []Network{
 	return Networks
 }
 
-// Creates a bridge with the same name
+
+// TODO: Add error cheks
 func CreateNATNetwork(name, address, netmask, start, end string) (*Network, error) {
-	// TODO: Add error cheks
 	conn := BuildConnection()
 
 	xmlString :=
@@ -108,4 +108,8 @@ func CreateNATNetwork(name, address, netmask, start, end string) (*Network, erro
 
 func CreateBridgedNetwork(){
 	// TODO: Add this
+}
+
+func DeleteNetwork(uuid string){
+	// Stops and deletes the network
 }
