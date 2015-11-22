@@ -1,5 +1,8 @@
 package buki
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"strconv"
+)
 
 /*
 <domain type='kvm' id='16'>
@@ -144,49 +147,68 @@ func ListVM() []VM {
 
 	return VMs
 }
-// CreateVM creates VM with given parameters 
-func CreateVM(image string, name string, cpus, ram int, disks []string, networks []string, cloudConfig string){
+// CreateBasicVM creates a basic VM with given parameters
+func CreateBasicVM(image string, name string, cpus, ram int, diskSize, network, cloudConfig string) (*VM, error){
 	// TODO: Escape all params
 	conn := BuildConnection()
+	defer conn.CloseConnection()
+
+	// Copies the images
+	CopyImage(image, name, diskSize)
+
+	// Genereate Cloud Config
+	cloudConfigFile, _ := CreateCloudConfig(name, cloudConfig)
+
+	// TODO: Infer image type from given Disk Images with "qemu-img info --output=json disk.img"
 
 	xmlString := `
 		<domain type='kvm'>
 			<name>`+ name +`</name>
-			<memory>`+ string(ram)  +`</memory>
-			<vcpu>`+ string(cpus) +`</vcpu>
+			<memory>`+ strconv.Itoa(ram)  +`</memory>
+			<vcpu>`+ strconv.Itoa(cpus) +`</vcpu>
 			<os>
 				<type>hvm</type>
 				<boot dev="hd" />
 			</os>
 			<devices>
 				<graphics type='vnc' port='-1'/>
-		`
-
-	// Add disks
-	for idx, disk := range disks {
-		dev := "vd" + string('a' + idx);
-		xmlString += `
 				<disk type='file' device='disk'>
-					<source file='` + disk + `'/>
-					<target dev='` + dev + `'/>
+				    <driver name='qemu' type='qcow2'/>
+					<source file='` + GetVMPrimaryDiskName(name) + `'/>
+					<target dev='vda' bus='virtio'/>
 				</disk>
-		`
-	}
-
-	for _, network := range networks {
-		xmlString += `
+				<disk type='file' device='disk'>
+					<source file='` + cloudConfigFile + `'/>
+					<target dev='vdb' bus="virtio"/>
+				</disk>
 				<interface type='network'>
 					<source network='` + network + `'/>
 					<mac address='` + GenerateMAC()+ `'/>
+					<model type="virtio" />
 				</interface>
 		`
-	}
 
 	// Add network interfaces
 	xmlString += `
 			</devices>
 	</domain>`
 
-	conn.DomainCreateXML(xmlString, 0)
+	println(xmlString)
+
+	dom, err := conn.DomainCreateXML(xmlString, 0)
+	defer dom.Free()
+
+	if err == nil {
+		err = dom.Create()
+
+		// Construct a new Network object to return it
+		myVM := &VM{}
+		respXml, _ := dom.GetXMLDesc(0);
+
+		xml.Unmarshal([]byte(respXml), myVM)
+		return myVM, nil
+	} else {
+		return nil, err
+	}
 }
 

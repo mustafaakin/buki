@@ -4,8 +4,8 @@ import (
 //	"github.com/mustafaakin/buki"
 //	"fmt"
 	"github.com/mustafaakin/buki"
+
 	"fmt"
-	"encoding/json"
 )
 
 func main() {
@@ -58,6 +58,7 @@ ssh_pwauth: True`
 	buki.CreateVM("ubuntu")
 	*/
 
+	/*
 	vms := buki.ListVM()
 	b, err := json.Marshal(vms)
 	if err != nil {
@@ -65,4 +66,14 @@ ssh_pwauth: True`
 		return
 	}
 	fmt.Println(string(b))
+
+	*/
+
+	userdata := `#cloud-config
+password: mustafa
+chpasswd: { expire: False }
+ssh_pwauth: True`
+
+	vm, _ := buki.CreateBasicVM("ubuntu_14-04", "myubi3", 2, 1024*1024, "15G", "default", userdata)
+	fmt.Printf("%+v", vm)
 }

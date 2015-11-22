@@ -62,20 +62,27 @@ func DownloadImage(path, name string) (error){
 	return nil
 }
 
+func GetVMPrimaryDiskName(vmName string) string{
+	vmFolder := path.Join(baseVMPath, vmName)
+	vmFileName := path.Join(vmFolder, "disk0.img")
+	return vmFileName
+}
+
 func CopyImage(imgName, vmName, size string) error{
 	// First Copy the image to place
 	// TODO: Add error checks
 	imageFileName := GetImagePath(imgName)
 	vmFolder := path.Join(baseVMPath, vmName)
+	vmFileName := GetVMPrimaryDiskName(vmName)
 	os.MkdirAll(vmFolder, 0777)
-	vmFileName := path.Join(vmFolder, "disk0.img")
+
 	CopyFile(imageFileName, vmFileName)
 	cmd  := exec.Command("qemu-img", "resize", vmFileName, size)
 	err := cmd.Run()
 	return err
 }
 
-func CreateCloudConfig(vmName, userData string) error{
+func CreateCloudConfig(vmName, userData string) (string, error) {
 	// Writes files to
 	vmFolder := path.Join(baseVMPath, vmName)
 	userDataFilePath := path.Join(vmFolder,  "user-data")
@@ -85,5 +92,5 @@ func CreateCloudConfig(vmName, userData string) error{
 
 	cmd  := exec.Command("cloud-localds", cloudInitImgPath, userDataFilePath)
 	err := cmd.Run()
-	return err
+	return cloudInitImgPath, err
 }
