@@ -6,17 +6,18 @@ import (
 	"path"
 	"errors"
 	"io/ioutil"
-
+	"os/exec"
 )
 
-var basePath = "/home/mustafa/buki/images"
+const baseImagePath = "/home/mustafa/buki/images"
+const baseVMPath = "/home/mustafa/buki/vms"
 
 func InitStorage(){
 
 }
 
 func GetAvailableImages() []string{
-	files, _ := ioutil.ReadDir(basePath)
+	files, _ := ioutil.ReadDir(baseImagePath)
 
 	s := make([]string, 0, 5);
 	for _, f := range files {
@@ -27,7 +28,7 @@ func GetAvailableImages() []string{
 }
 
 func GetImagePath(name string) string{
-	return path.Join(basePath, string(name + ".img"))
+	return path.Join(baseImagePath, string(name + ".img"))
 }
 
 func DownloadImage(path, name string) (error){
@@ -59,4 +60,30 @@ func DownloadImage(path, name string) (error){
 	}
 
 	return nil
+}
+
+func CopyImage(imgName, vmName, size string) error{
+	// First Copy the image to place
+	// TODO: Add error checks
+	imageFileName := GetImagePath(imgName)
+	vmFolder := path.Join(baseVMPath, vmName)
+	os.MkdirAll(vmFolder, 0777)
+	vmFileName := path.Join(vmFolder, "disk0.img")
+	CopyFile(imageFileName, vmFileName)
+	cmd  := exec.Command("qemu-img", "resize", vmFileName, size)
+	err := cmd.Run()
+	return err
+}
+
+func CreateCloudConfig(vmName, userData string) error{
+	// Writes files to
+	vmFolder := path.Join(baseVMPath, vmName)
+	userDataFilePath := path.Join(vmFolder,  "user-data")
+	cloudInitImgPath := path.Join(vmFolder, "cloud-init.img")
+
+	ioutil.WriteFile(userDataFilePath , []byte(userData), 0777 )
+
+	cmd  := exec.Command("cloud-localds", cloudInitImgPath, userDataFilePath)
+	err := cmd.Run()
+	return err
 }

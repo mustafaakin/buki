@@ -7,8 +7,7 @@ func ListVM(){
 // CreateVM creates VM with given parameters 
 func CreateVM(image string, name string, cpus, ram int, disks []string, networks []string){
 	// TODO: Escape all params
-	// TODO: Qemu-img to extend images
-	// CDROM with meta-data and user-data, just mount folder 
+	// CDROM with meta-data and user-data, just mount folder
 
 	conn := BuildConnection()
 	ram = ram * 1024;
@@ -19,7 +18,7 @@ func CreateVM(image string, name string, cpus, ram int, disks []string, networks
 			<memory>`+ string(ram)  +`</memory>
 			<vcpu>`+ string(cpus) +`</vcpu>
 			<os>
-				<type arch="i686">hvm</type>
+				<type>hvm</type>
 				<boot dev="hd" />
 			</os>
 			<devices>
@@ -28,7 +27,7 @@ func CreateVM(image string, name string, cpus, ram int, disks []string, networks
 
 	// Add disks
 	for idx, disk := range disks {
-		dev := "hd" + string('a' + idx);
+		dev := "vd" + string('a' + idx);
 		xmlString += `
 				<disk type='file' device='disk'>
 					<source file='` + disk + `'/>

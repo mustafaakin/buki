@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"fmt"
 	"time"
+	"io"
+	"os"
 )
 
 func BuildConnection() libvirt.VirConnection {
@@ -13,6 +15,26 @@ func BuildConnection() libvirt.VirConnection {
 		panic(err)
 	}
 	return conn
+}
+
+func CopyFile(src, dst string) error {
+	// Ref: http://stackoverflow.com/questions/20437336/how-to-execute-system-command-in-golang-with-unknown-arguments
+	s, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	// no need to check errors on read only file, we already got everything
+	// we need from the filesystem, so nothing can go wrong now.
+	defer s.Close()
+	d, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(d, s); err != nil {
+		d.Close()
+		return err
+	}
+	return d.Close()
 }
 
 func GenerateMAC() string {

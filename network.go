@@ -100,6 +100,7 @@ func CreateNATNetwork(name, address, netmask, start, end string) (*Network, erro
 		// Construct a new Network object to return it
 		myNet := &Network{}
 		respXml, _ := net.GetXMLDesc(0);
+
 		xml.Unmarshal([]byte(respXml), myNet)
 		return myNet, nil
 	} else {
