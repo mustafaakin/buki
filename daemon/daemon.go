@@ -10,12 +10,34 @@ import (
 	"encoding/json"
 )
 
-func Index(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Buki Remote API")
 }
 
-func GetVMs(w http.ResponseWriter, r *http.Request) {
+func getVMs(w http.ResponseWriter, r *http.Request) {
 	vms := buki.ListVM()
+	b, err := json.Marshal(vms)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	w.Header().Set("Content-type", "application/json") // temporary
+	fmt.Fprintln(w, string(b))
+}
+
+func getImages(w http.ResponseWriter, r *http.Request) {
+	vms := buki.GetAvailableImages()
+	b, err := json.Marshal(vms)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	w.Header().Set("Content-type", "application/json") // temporary
+	fmt.Fprintln(w, string(b))
+}
+
+func getNetworks(w http.ResponseWriter, r *http.Request) {
+	vms := buki.GetNetworks()
 	b, err := json.Marshal(vms)
 	if err != nil {
 		fmt.Println(err)
@@ -40,10 +62,10 @@ func main() {
 	*/
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", Index)
-	router.HandleFunc("/vms", GetVMs)
-//	router.HandleFunc("/images", GetImages)
-//	router.HandleFunc("/networks", GetNetworks)
+	router.HandleFunc("/", index)
+	router.HandleFunc("/vms", getVMs)
+	router.HandleFunc("/images", getImages)
+	router.HandleFunc("/networks", getNetworks)
 
 	// router.HandleFunc("/networks/{todoId}", TodoShow)
 	log.Println("Listening on :8080")
