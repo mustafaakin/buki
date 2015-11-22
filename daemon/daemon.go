@@ -4,6 +4,8 @@ import (
 //	"github.com/mustafaakin/buki"
 //	"fmt"
 	"github.com/mustafaakin/buki"
+	"fmt"
+	"encoding/json"
 )
 
 func main() {
@@ -40,7 +42,7 @@ func main() {
 */
 
 //	buki.CopyImage("ubuntu_14-04", "myubuntu", "10G")
-
+/*
 	userdata := `#cloud-config
 password: mustafa
 chpasswd: { expire: False }
@@ -52,4 +54,15 @@ ssh_pwauth: True`
 	} else {
 		println("Created cloud-config image")
 	}
+
+	buki.CreateVM("ubuntu")
+	*/
+
+	vms := buki.ListVM()
+	b, err := json.Marshal(vms)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(b))
 }
