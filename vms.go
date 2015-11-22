@@ -188,11 +188,12 @@ func CreateBasicVM(image string, name string, cpus, ram int, diskSize, network, 
 				</interface>
 		`
 
-	// Add network interfaces
 	xmlString += `
 			</devices>
 	</domain>`
 
+	// Write XML file for reference purposes
+	// ioutil.WriteFile(userDataFilePath , []byte(userData), 0777 )
 	println(xmlString)
 
 	dom, err := conn.DomainCreateXML(xmlString, 0)
