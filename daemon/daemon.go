@@ -1,8 +1,9 @@
 package main
 
 import (
+//	"github.com/mustafaakin/buki"
+//	"fmt"
 	"github.com/mustafaakin/buki"
-	"fmt"
 )
 
 func main() {
@@ -26,5 +27,8 @@ func main() {
 
 //	fmt.Println(buki.GetAvailableImages())
 
-	
+
+	for i := 0; i < 10; i++ {
+		println(buki.GenerateMAC())
+	}
 }

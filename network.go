@@ -49,6 +49,7 @@ type DHCPRange struct {
 	End    string   `xml:"end,attr" json:"end"`
 }
 
+// GetNetworks allows the tools 
 func GetNetworks() []Network{
 	conn := BuildConnection()
 	defer conn.CloseConnection()
@@ -68,9 +69,9 @@ func GetNetworks() []Network{
 	return Networks
 }
 
-
-// TODO: Add error cheks
+// CreateNATNetwork creates a new NAT network
 func CreateNATNetwork(name, address, netmask, start, end string) (*Network, error) {
+	// TODO: Add error cheks
 	conn := BuildConnection()
 
 	xmlString :=
