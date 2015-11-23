@@ -3,6 +3,7 @@ import (
 	"encoding/xml"
 	"strconv"
 
+	"fmt"
 )
 
 type VM struct {
@@ -176,5 +177,6 @@ func StopVM(name string) {
 	dom, _ := conn.LookupDomainByName(name)
 	defer dom.Free()
 
-	dom.Shutdown()
+	err := dom.Shutdown()
+	fmt.Printf("%+v", err)
 }

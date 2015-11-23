@@ -19,22 +19,32 @@ func ListImages(c *cli.Context){
 
 func ListNetworks(c *cli.Context){
 	nets := buki.GetNetworks()
-	fmt.Printf("%10s %50s %10s %10s\n", "Name", "UUID", "Bridge", "Mode");
-	fmt.Printf("%10s %50s %10s %10s\n", "====", "====", "======", "====");
+	fmt.Printf("%10s %10s %10s\n", "Name", "Bridge", "Mode");
+	fmt.Printf("%10s %10s %10s\n", "====", "======", "====");
 
 	for _, net := range(nets) {
-		fmt.Printf("%10s %50s %10s %10s\n", net.Name, net.UUID, net.Bridge.Name, net.Forward.Mode)
+		fmt.Printf("%10s %10s %10s\n", net.Name, net.UUID, net.Bridge.Name, net.Forward.Mode)
 	}
 }
 
 func ListVMS(c* cli.Context){
 	vms := buki.ListVM()
-	fmt.Printf("%10s %50s %10s %10s %6s\n", "Name", "UUID", "CPUs", "Memory", "Active");
-	fmt.Printf("%10s %50s %10s %10s %6s\n", "====", "====", "====", "======", "======");
+	fmt.Printf("%10s %10s %10s %10s %6s\n", "Name", "CPUs", "Memory", "Networks", "Active");
+	fmt.Printf("%10s %10s %10s %10s %6s\n", "====", "====", "======", "========", "======");
 
 	for _, vm := range(vms) {
-		fmt.Printf("%10s %50s %10d %10d %6t\n", vm.Name, vm.UUID, vm.Cpus, (vm.Memory / 1024), vm.Active)
+		fmt.Printf("%10s %10d %10d %10s %6t\n", vm.Name, vm.Cpus, (vm.Memory / 1024), vm.Interface[0].Source.Network, vm.Active)
 	}
+}
+
+func StopVM(c* cli.Context){
+	name := c.String("name")
+	buki.StopVM(name)
+}
+
+func StartVM(c* cli.Context){
+	name := c.String("name")
+	buki.StartVM(name)
 }
 
 func CreateVM(c* cli.Context){
@@ -57,7 +67,8 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "buki"
 	app.Version = "0.1"
-	app.Usage = "creates vms"
+	app.Author = "Mustafa Akin <mustafa91@gmail.com>"
+	app.Usage = "easy libvirt virtualization management tool"
 	app.Commands = []cli.Command{{
 		Name:      "image",
 		Subcommands: []cli.Command{{
@@ -74,6 +85,7 @@ func main() {
 		}},
 	},{
 		Name:      "vm",
+		Usage:	"Mange Virtual machines",
 		Subcommands: []cli.Command{{
 			Name: "list",
 			Usage: "lists vms",
@@ -116,6 +128,22 @@ func main() {
 					Usage: "Network for the virtual machine",
 				},
 			},
+		},{
+			Name: "stop",
+			Usage: "Stops a VM given by name",
+			Action: StopVM,
+			Flags: []cli.Flag{cli.StringFlag{
+				Name: "name",
+				Usage: "VM name",
+			}},
+		},{
+			Name: "start",
+			Usage: "Start a VM given by name",
+			Action: StartVM,
+			Flags: []cli.Flag{cli.StringFlag{
+				Name: "name",
+				Usage: "VM name",
+			}},
 		}},
 	}}
 
