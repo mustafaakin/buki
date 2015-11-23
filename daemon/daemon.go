@@ -47,24 +47,55 @@ func getNetworks(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(b))
 }
 
-/*
-func GetVMs(w http.ResponseWriter, r *http.Request) {
+
+func getVM(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	todoId := vars["todoId"]
-	fmt.Fprintln(w, "Todo show:", todoId)
+	vmName := vars["vmName"]
+
+	vm := buki.GetVM(vmName)
+	b, err := json.Marshal(vm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	w.Header().Set("Content-type", "application/json") // temporary
+	fmt.Fprintln(w, string(b))
+
 }
-*/
+
+func startVM(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	vmName := vars["vmName"]
+
+	buki.StartVM(vmName)
+	w.Header().Set("Content-type", "application/json") // temporary
+	fmt.Fprintln(w, "ok")
+
+}
+
+func stopVM(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	vmName := vars["vmName"]
+
+	buki.StopVM(vmName)
+	w.Header().Set("Content-type", "application/json") // temporary
+	fmt.Fprintln(w, "ok")
+}
 
 func main() {
-	/*
-
-
-	*/
-
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", index)
+
+	// VMs
 	router.HandleFunc("/vms", getVMs)
+	router.HandleFunc("/vm/{vmName}/info", getVM)
+	router.HandleFunc("/vm/{vmName}/start", startVM)
+	router.HandleFunc("/vm/{vmName}/stop", stopVM)
+
+	// Images
 	router.HandleFunc("/images", getImages)
+
+	// Networks
 	router.HandleFunc("/networks", getNetworks)
 
 	// router.HandleFunc("/networks/{todoId}", TodoShow)

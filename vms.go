@@ -2,79 +2,8 @@ package buki
 import (
 	"encoding/xml"
 	"strconv"
+
 )
-
-/*
-<domain type='kvm' id='16'>
-  <name>myubuntu</name>
-  <uuid>dfbdd086-44d9-4dd4-8bf4-1e81b2364dde</uuid>
-  <memory unit='KiB'>1048576</memory>
-  <currentMemory unit='KiB'>1048576</currentMemory>
-  <vcpu placement='static'>2</vcpu>
-  <resource>
-    <partition>/machine</partition>
-  </resource>
-  <os>
-    <type arch='x86_64' machine='pc-i440fx-trusty'>hvm</type>
-    <boot dev='hd'/>
-  </os>
-  <features>
-    <acpi/>
-  </features>
-  <clock offset='utc'/>
-  <on_poweroff>destroy</on_poweroff>
-  <on_reboot>restart</on_reboot>
-  <on_crash>destroy</on_crash>
-  <devices>
-    <emulator>/usr/bin/kvm-spice</emulator>
-    <disk type='file' device='disk'>
-      <driver name='qemu' type='qcow2' cache='none'/>
-      <source file='/home/mustafa/buki/vms/myubuntu/disk0.img'/>
-      <target dev='vda' bus='virtio'/>
-      <alias name='virtio-disk0'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
-    </disk>
-    <disk type='file' device='disk'>
-      <driver name='qemu' type='raw'/>
-      <source file='/home/mustafa/buki/vms/myubuntu/cloud-init.img'/>
-      <target dev='vdb' bus='virtio'/>
-      <alias name='virtio-disk1'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
-    </disk>
-    <controller type='usb' index='0'>
-      <alias name='usb0'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x2'/>
-    </controller>
-    <controller type='pci' index='0' model='pci-root'>
-      <alias name='pci.0'/>
-    </controller>
-    <interface type='network'>
-      <mac address='24:42:53:21:52:45'/>
-      <source network='default'/>
-      <target dev='vnet0'/>
-      <model type='virtio'/>
-      <alias name='net0'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
-    </interface>
-    <serial type='pty'>
-      <source path='/dev/pts/0'/>
-      <target port='0'/>
-      <alias name='serial0'/>
-    </serial>
-    <console type='pty' tty='/dev/pts/0'>
-      <source path='/dev/pts/0'/>
-      <target type='serial' port='0'/>
-      <alias name='serial0'/>
-    </console>
-    <input type='mouse' bus='ps2'/>
-    <input type='keyboard' bus='ps2'/>
-    <graphics type='vnc' port='5900' autoport='yes' listen='127.0.0.1'>
-      <listen type='address' address='127.0.0.1'/>
-    </graphics>
-  </devices>
-</domain>
-
- */
 
 type VM struct {
 	XMLName xml.Name       `xml:"domain" json:"-"`
@@ -213,3 +142,39 @@ func CreateBasicVM(image string, name string, cpus, ram int, diskSize, network, 
 	}
 }
 
+func GetVM(name string) *VM {
+	// TODO: Non existent check
+	conn := BuildConnection()
+	defer conn.CloseConnection()
+
+	dom, _ := conn.LookupDomainByName(name)
+	defer dom.Free()
+
+	myVM := &VM{}
+	respXml, _ := dom.GetXMLDesc(0);
+	xml.Unmarshal([]byte(respXml), myVM)
+	isActive, _ := dom.IsActive()
+	myVM.Active = isActive
+
+	return myVM
+}
+
+func StartVM(name string) {
+	conn := BuildConnection()
+	defer conn.CloseConnection()
+
+	dom, _ := conn.LookupDomainByName(name)
+	defer dom.Free()
+
+	dom.Create()
+}
+
+func StopVM(name string) {
+	conn := BuildConnection()
+	defer conn.CloseConnection()
+
+	dom, _ := conn.LookupDomainByName(name)
+	defer dom.Free()
+
+	dom.Shutdown()
+}
