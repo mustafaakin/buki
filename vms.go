@@ -2,7 +2,6 @@ package buki
 import (
 	"encoding/xml"
 	"strconv"
-
 	"fmt"
 )
 
@@ -73,6 +72,8 @@ func ListVM() []VM {
 		xml.Unmarshal([]byte(xmlResp), &VMs[idx])
 		isActive, _ := vm.IsActive()
 		VMs[idx].Active = isActive
+
+		vm.Free()
 	}
 
 	return VMs
@@ -100,6 +101,13 @@ func CreateBasicVM(image string, name string, cpus, ram int, diskSize, network, 
 				<type>hvm</type>
 				<boot dev="hd" />
 			</os>
+			<features>
+               <acpi/>
+            </features>
+			<on_poweroff>preserve</on_poweroff>
+  			<on_reboot>restart</on_reboot>
+  			<on_crash>restart</on_crash>
+  			<on_lockfailure>poweroff</on_lockfailure>
 			<devices>
 				<graphics type='vnc' port='-1'/>
 				<disk type='file' device='disk'>
@@ -177,6 +185,6 @@ func StopVM(name string) {
 	dom, _ := conn.LookupDomainByName(name)
 	defer dom.Free()
 
-	err := dom.Shutdown()
+	err := dom.Shutdown() // TODO: Add flags for force shutdown
 	fmt.Printf("%+v", err)
 }
