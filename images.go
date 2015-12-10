@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os/exec"
+	"fmt"
 )
 
 const baseImagePath = "/home/mustafa/buki/images"
@@ -76,9 +77,15 @@ func CopyImage(imgName, vmName, size string) error{
 	vmFileName := GetVMPrimaryDiskName(vmName)
 	os.MkdirAll(vmFolder, 0777)
 
-	CopyFile(imageFileName, vmFileName)
+	err2 := CopyFile(imageFileName, vmFileName)
+	fmt.Println(err2)
+
 	cmd  := exec.Command("qemu-img", "resize", vmFileName, size)
-	err := cmd.Run()
+	out, err := cmd.CombinedOutput()
+	fmt.Println(string(out))
+
+
+
 	return err
 }
 

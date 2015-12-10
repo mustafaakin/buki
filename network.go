@@ -1,7 +1,9 @@
 package buki
+
 import (
 	"encoding/xml"
 )
+
 /*
 <network>
   <name>default</name>
@@ -18,39 +20,39 @@ import (
     </dhcp>
   </ip>
 </network>
- */
+*/
 
 type Network struct {
-	XMLName xml.Name       `xml:"network" json:"-"`
-	Name    string	       `xml:"name" json:"name"`
-	UUID    string	       `xml:"uuid" json:"uuid"`
-	Forward Forward        `xml:"forward" json:"forward"`
-	Bridge	Bridge         `xml:"bridge" json:"bridge"`
-	IPs		[]IPAddress    `xml:"ip" json:"ip"`
-	Active	bool           `json:"active"`
+	XMLName xml.Name    `xml:"network" json:"-"`
+	Name    string      `xml:"name" json:"name"`
+	UUID    string      `xml:"uuid" json:"uuid"`
+	Forward Forward     `xml:"forward" json:"forward"`
+	Bridge  Bridge      `xml:"bridge" json:"bridge"`
+	IPs     []IPAddress `xml:"ip" json:"ip"`
+	Active  bool        `json:"active"`
 }
 
 type Forward struct {
-	Mode    string         `xml:"mode,attr" json:"mode"`
+	Mode string `xml:"mode,attr" json:"mode"`
 }
 
 type IPAddress struct {
-	Address string         `xml:"address,attr" json:"address"`
-	Netmask string         `xml:"netmask,attr" json:"netmask"`
-	IPRange DHCPRange		`xml:"dhcp>range" json:"range"`
+	Address string    `xml:"address,attr" json:"address"`
+	Netmask string    `xml:"netmask,attr" json:"netmask"`
+	IPRange DHCPRange `xml:"dhcp>range" json:"range"`
 }
 
 type Bridge struct {
-	Name  string         `xml:"name,attr" json:"name"`
+	Name string `xml:"name,attr" json:"name"`
 }
 
 type DHCPRange struct {
-	Start  string   `xml:"start,attr" json:"start"`
-	End    string   `xml:"end,attr" json:"end"`
+	Start string `xml:"start,attr" json:"start"`
+	End   string `xml:"end,attr" json:"end"`
 }
 
-// GetNetworks allows the tools 
-func GetNetworks() []Network{
+// GetNetworks allows the tools
+func GetNetworks() []Network {
 	conn := BuildConnection()
 	defer conn.CloseConnection()
 
@@ -71,7 +73,7 @@ func GetNetworks() []Network{
 
 // CreateNATNetwork creates a new NAT network
 func CreateNATNetwork(name, address, netmask, start, end string) (*Network, error) {
-	// TODO: Add error cheks
+	// TODO: Add error checks
 	conn := BuildConnection()
 
 	xmlString :=
@@ -79,7 +81,7 @@ func CreateNATNetwork(name, address, netmask, start, end string) (*Network, erro
 			<name>` + name + `</name>
 			<bridge name="` + name + `"/>
 			<forward/>
-			<ip address="` + address + `" netmask="` + netmask +`">
+			<ip address="` + address + `" netmask="` + netmask + `">
 			    <dhcp>
       				<range start='` + start + `' end='` + end + `'/>
     			</dhcp>
@@ -88,7 +90,7 @@ func CreateNATNetwork(name, address, netmask, start, end string) (*Network, erro
 
 	net, err := conn.NetworkDefineXML(xmlString)
 
-	defer func(){
+	defer func() {
 		conn.CloseConnection()
 		net.Free()
 	}()
@@ -99,7 +101,7 @@ func CreateNATNetwork(name, address, netmask, start, end string) (*Network, erro
 
 		// Construct a new Network object to return it
 		myNet := &Network{}
-		respXml, _ := net.GetXMLDesc(0);
+		respXml, _ := net.GetXMLDesc(0)
 
 		xml.Unmarshal([]byte(respXml), myNet)
 		return myNet, nil
@@ -108,10 +110,39 @@ func CreateNATNetwork(name, address, netmask, start, end string) (*Network, erro
 	}
 }
 
-func CreateBridgedNetwork(){
-	// TODO: Add this
+func CreateBridgedNetwork(name, interfaceName string) (*Network, error) {
+	xmlString :=
+		`
+			<network>
+        		<name>` + name + `</name>
+        		<forward mode="bridge"/>
+        		<bridge name="` + interfaceName + `"/>
+      		</network>
+		`
+
+	conn := BuildConnection()
+	net, err := conn.NetworkDefineXML(xmlString)
+
+	defer func() {
+		conn.CloseConnection()
+		net.Free()
+	}()
+
+	if err == nil {
+		err = net.Create()
+		net.SetAutostart(true)
+
+		// Construct a new Network object to return it
+		myNet := &Network{}
+		respXml, _ := net.GetXMLDesc(0)
+
+		xml.Unmarshal([]byte(respXml), myNet)
+		return myNet, nil
+	} else {
+		return nil, err
+	}
 }
 
-func DeleteNetwork(uuid string){
+func DeleteNetwork(uuid string) {
 	// Stops and deletes the network
 }

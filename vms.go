@@ -80,7 +80,7 @@ func ListVM() []VM {
 }
 // CreateBasicVM creates a basic VM with given parameters
 func CreateBasicVM(image string, name string, cpus, ram int, diskSize, network, cloudConfig string) (*VM, error){
-	// TODO: Escape all params
+	// TODO: Escape all params, safer XMLs
 	conn := BuildConnection()
 	defer conn.CloseConnection()
 
@@ -102,12 +102,11 @@ func CreateBasicVM(image string, name string, cpus, ram int, diskSize, network, 
 				<boot dev="hd" />
 			</os>
 			<features>
-               <acpi/>
+				<acpi/>
+				<apic/>
+				<pae/>
             </features>
 			<on_poweroff>preserve</on_poweroff>
-  			<on_reboot>restart</on_reboot>
-  			<on_crash>restart</on_crash>
-  			<on_lockfailure>poweroff</on_lockfailure>
 			<devices>
 				<graphics type='vnc' port='-1'/>
 				<disk type='file' device='disk'>
@@ -134,11 +133,12 @@ func CreateBasicVM(image string, name string, cpus, ram int, diskSize, network, 
 	// ioutil.WriteFile(userDataFilePath , []byte(userData), 0777 )
 	println(xmlString)
 
-	dom, err := conn.DomainCreateXML(xmlString, 0)
+	dom, err := conn.DomainDefineXML(xmlString)
 	defer dom.Free()
 
 	if err == nil {
 		err = dom.Create()
+
 
 		// Construct a new Network object to return it
 		myVM := &VM{}
@@ -158,6 +158,7 @@ func GetVM(name string) *VM {
 
 	dom, _ := conn.LookupDomainByName(name)
 	defer dom.Free()
+
 
 	myVM := &VM{}
 	respXml, _ := dom.GetXMLDesc(0);
