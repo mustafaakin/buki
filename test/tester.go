@@ -25,8 +25,9 @@ hostname: dq
 	cpus := 2
 	ram := 2048
 	disk := "50G"
-	network := "br0-bridge"
-	vm, err := buki.CreateBasicVM(image, name , cpus, ram *1024, disk, network, cloudConfig)
+	network := "vmbr0"
+
+	vm, err := buki.CreateBasicVM(image, name, cpus, ram*1024, disk, network, cloudConfig)
 
 	fmt.Printf("%+v \n", vm)
 	fmt.Printf("%+v \n", err)
@@ -42,10 +43,5 @@ hostname: dq
 	*/
 	vm = buki.GetVM(name)
 	fmt.Println(vm)
-
-
-
-
-
 
 }

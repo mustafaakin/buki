@@ -1,26 +1,27 @@
 package buki
+
 import (
+	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
-	"io"
-	"path"
-	"errors"
-	"io/ioutil"
 	"os/exec"
-	"fmt"
+	"path"
 )
 
-const baseImagePath = "/home/mustafa/buki/images"
-const baseVMPath = "/home/mustafa/buki/vms"
+const baseImagePath = "/var/lib/libvirt/images/base-images"
+const baseVMPath = "/var/lib/libvirt/images/vms"
 
-func InitStorage(){
+func InitStorage() {
 
 }
 
-func GetAvailableImages() []string{
+func GetAvailableImages() []string {
 	files, _ := ioutil.ReadDir(baseImagePath)
 
-	s := make([]string, 0, 5);
+	s := make([]string, 0, 5)
 	for _, f := range files {
 		s = append(s, f.Name())
 	}
@@ -28,16 +29,16 @@ func GetAvailableImages() []string{
 	return s
 }
 
-func GetImagePath(name string) string{
-	return path.Join(baseImagePath, string(name + ".img"))
+func GetImagePath(name string) string {
+	return path.Join(baseImagePath, string(name+".img"))
 }
 
-func DownloadImage(path, name string) (error){
+func DownloadImage(path, name string) error {
 	// TODO: If zipped, unzip automatically
 	savePath := GetImagePath(name)
 
 	// Check if already downloaded
-	if 	_, err := os.Stat(savePath); os.IsExist(err) {
+	if _, err := os.Stat(savePath); os.IsExist(err) {
 		return errors.New("Image already exists")
 	}
 
@@ -63,13 +64,14 @@ func DownloadImage(path, name string) (error){
 	return nil
 }
 
-func GetVMPrimaryDiskName(vmName string) string{
+func GetVMPrimaryDiskName(vmName string) string {
 	vmFolder := path.Join(baseVMPath, vmName)
 	vmFileName := path.Join(vmFolder, "disk0.img")
 	return vmFileName
 }
 
-func CopyImage(imgName, vmName, size string) error{
+// CopyImage copies the given image to output directory, with given resize option
+func CopyImage(imgName, vmName, size string) error {
 	// First Copy the image to place
 	// TODO: Add error checks
 	imageFileName := GetImagePath(imgName)
@@ -80,11 +82,9 @@ func CopyImage(imgName, vmName, size string) error{
 	err2 := CopyFile(imageFileName, vmFileName)
 	fmt.Println(err2)
 
-	cmd  := exec.Command("qemu-img", "resize", vmFileName, size)
+	cmd := exec.Command("qemu-img", "resize", vmFileName, size)
 	out, err := cmd.CombinedOutput()
 	fmt.Println(string(out))
-
-
 
 	return err
 }
@@ -92,12 +92,12 @@ func CopyImage(imgName, vmName, size string) error{
 func CreateCloudConfig(vmName, userData string) (string, error) {
 	// Writes files to
 	vmFolder := path.Join(baseVMPath, vmName)
-	userDataFilePath := path.Join(vmFolder,  "user-data")
+	userDataFilePath := path.Join(vmFolder, "user-data")
 	cloudInitImgPath := path.Join(vmFolder, "cloud-init.img")
 
-	ioutil.WriteFile(userDataFilePath , []byte(userData), 0777 )
+	ioutil.WriteFile(userDataFilePath, []byte(userData), 0777)
 
-	cmd  := exec.Command("cloud-localds", cloudInitImgPath, userDataFilePath)
+	cmd := exec.Command("cloud-localds", cloudInitImgPath, userDataFilePath)
 	err := cmd.Run()
 	return cloudInitImgPath, err
 }
