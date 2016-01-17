@@ -89,6 +89,7 @@ func CopyImage(imgName, vmName, size string) error {
 	return err
 }
 
+// CreateCloudConfig generates valid cloud-init images for vms
 func CreateCloudConfig(vmName, userData string) (string, error) {
 	// Writes files to
 	vmFolder := path.Join(baseVMPath, vmName)

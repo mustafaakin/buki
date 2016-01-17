@@ -9,6 +9,7 @@ import (
 	"os"
 )
 
+// BuildConnection builds a local libvirt connection to qemu 
 func BuildConnection() libvirt.VirConnection {
 	conn, err := libvirt.NewVirConnection("qemu:///system")
 	if err != nil {
@@ -17,6 +18,7 @@ func BuildConnection() libvirt.VirConnection {
 	return conn
 }
 
+// CopyFile copies the given file to destination  
 func CopyFile(src, dst string) error {
 	// Ref: http://stackoverflow.com/questions/20437336/how-to-execute-system-command-in-golang-with-unknown-arguments
 	s, err := os.Open(src)
@@ -37,6 +39,7 @@ func CopyFile(src, dst string) error {
 	return d.Close()
 }
 
+// GenerateMAC generates valid MAC addresses for the VMs
 func GenerateMAC() string {
 	// Reference: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/5/html/Virtualization/sect-Virtualization-Tips_and_tricks-Generating_a_new_unique_MAC_address.html
 	mac := [6]byte{};
